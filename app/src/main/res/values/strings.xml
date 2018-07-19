@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">CameraSB</string>
+    <string name="permission_request">This sample needs permission for camera and audio recording.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <string name="stop">Stop</string>
+    <string name="record">Record</string>
+
+</resources>
