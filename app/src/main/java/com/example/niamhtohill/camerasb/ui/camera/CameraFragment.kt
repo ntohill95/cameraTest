@@ -15,8 +15,10 @@ import android.support.v4.app.Fragment
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaRecorder
+import android.opengl.Visibility
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.SystemClock
 import android.support.v4.app.ActivityCompat
 
 import android.support.v4.app.DialogFragment
@@ -53,6 +55,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
     private var sensorOrientation:Int? = null
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
+    private var cameraIdButton = 0
 
     private val DEFAULT_ORIENTATIONS = object :SparseIntArray(){
         init {
@@ -81,6 +84,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
             configureTransform(width, height)
         }
         override fun onSurfaceTextureUpdated(p0: SurfaceTexture?) {
+
         }
         override fun onSurfaceTextureDestroyed(p0: SurfaceTexture?): Boolean {
             return true
@@ -161,6 +165,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
         video.setOnClickListener(this)
         texture.setOnClickListener(this)
         savedVideos.setOnClickListener(this)
+        changeCamera.setOnClickListener(this)
     }
 
     override fun onResume(){
@@ -186,8 +191,12 @@ open class CameraFragment : Fragment(), View.OnClickListener {
                 println("The PLAY?STOP button was pressed")
                 if(isRecodingVideo){
                     stopRecordingVideo()
+                    //show the change camera button when not recording - prevents being able to change while filming (Same as SB)
+                    changeCamera.visibility = View.VISIBLE
                 }else{
                     startRecordingVideo()
+                    //hide the change camera button
+                    changeCamera.visibility = View.GONE
                 }
             }
             R.id.texture -> {
@@ -197,6 +206,22 @@ open class CameraFragment : Fragment(), View.OnClickListener {
                 println("***********SAVE PRESSED")
                 val intent = Intent(context, SavedVideos::class.java)
                 startActivity(intent)
+
+            }
+            R.id.changeCamera -> {
+                println("***********Change Camera")
+                when(cameraIdButton){
+                    0 -> cameraIdButton =1
+                    1 -> cameraIdButton =0
+                }
+                closeCamera()
+                stopBackgroundThread()
+                startBackgroundThread()
+                if(texture.isAvailable){
+                    openCamera(texture.width, texture.height)
+                }else{
+                    texture.surfaceTextureListener
+                }
             }
         }
     }
@@ -328,7 +353,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
             if(!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
                 throw RuntimeException("Time out while waiting to lock camera opening")
             }
-            val cameraId = manager.cameraIdList[0]
+            val cameraId = manager.cameraIdList[cameraIdButton]
             val characteristics = manager.getCameraCharacteristics(cameraId)
             val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
@@ -480,6 +505,8 @@ open class CameraFragment : Fragment(), View.OnClickListener {
             return
         }
         try{
+            timer.base = SystemClock.elapsedRealtime()
+            timer.start()
             closePreviewSession()
             setUpMediaRecorder()
             val surfaceTexture = texture.surfaceTexture
@@ -538,6 +565,8 @@ open class CameraFragment : Fragment(), View.OnClickListener {
         }
 
         /**UI*/
+        timer.stop()
+        timer.base = SystemClock.elapsedRealtime()
         isRecodingVideo = false
         video.setImageResource(R.drawable.play)
         mediaRecorder!!.stop()

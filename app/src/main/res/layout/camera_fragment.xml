@@ -20,6 +20,16 @@
         android:layout_alignParentBottom="true"
         android:clickable="true"/>
 
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/changeCamera"
+        android:src="@drawable/camera"
+        android:layout_centerHorizontal="true"
+        android:elevation="20dp"
+        android:layout_margin="30dp"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"/>
 
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"
@@ -32,5 +42,21 @@
         android:layout_alignParentBottom="true"
         android:clickable="true"/>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#CC000000"/>
+
+        <Chronometer
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/timer" />
+    </RelativeLayout>
 </RelativeLayout>
