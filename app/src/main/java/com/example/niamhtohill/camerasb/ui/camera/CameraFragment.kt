@@ -30,6 +30,7 @@ import android.widget.Toast
 import com.example.niamhtohill.camerasb.R
 import com.example.niamhtohill.camerasb.SavedVideos
 import kotlinx.android.synthetic.main.camera_fragment.*
+import java.io.File
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -56,6 +57,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
     private var cameraIdButton = 0
+    var projectID: Long = 9999
 
     private val DEFAULT_ORIENTATIONS = object :SparseIntArray(){
         init {
@@ -157,6 +159,13 @@ open class CameraFragment : Fragment(), View.OnClickListener {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
+        val bundle = this.arguments
+        if(bundle != null) {
+            projectID = bundle.getLong("projectID")
+        } else {
+            projectID = System.currentTimeMillis()
+        }
+        println("*********" + projectID.toString() +"**********")
         return inflater.inflate(R.layout.camera_fragment, container, false)
     }
 
@@ -205,6 +214,7 @@ open class CameraFragment : Fragment(), View.OnClickListener {
             R.id.savedVideos -> {
                 println("***********SAVE PRESSED")
                 val intent = Intent(context, SavedVideos::class.java)
+
                 startActivity(intent)
 
             }
@@ -471,15 +481,15 @@ open class CameraFragment : Fragment(), View.OnClickListener {
     }
 
     private fun setUpMediaRecorder(){
-        var activity = activity
-        if(null == activity){
+        val activity = activity
+        if(null==activity){
             return
         }
         mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
         mediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
         if(mNextVideoAbsolutePath == null || mNextVideoAbsolutePath!!.isEmpty()){
-            mNextVideoAbsolutePath = getVideoFilePath(activity)
+            mNextVideoAbsolutePath = getVideoFilePath(activity, projectID)
         }
         mediaRecorder!!.setOutputFile(mNextVideoAbsolutePath)
         mediaRecorder!!.setVideoEncodingBitRate(10000000)
@@ -495,9 +505,19 @@ open class CameraFragment : Fragment(), View.OnClickListener {
         mediaRecorder!!.prepare()
     }
 
-    private fun getVideoFilePath(context: Context):String{
+    private fun getVideoFilePath(context: Context, projectIDToSave:Long):String{
         val directory = context.filesDir
-        return ((if (directory==null) "" else(directory.absolutePath + "/")) + System.currentTimeMillis() +".mp4")
+        var directoryString:String
+        if (directory==null){
+            directoryString = ""
+        }else{
+            directoryString = directory.absolutePath + "/"
+        }
+        directoryString += projectIDToSave.toString() + "/"
+        val newDirectory = File(directoryString)
+        newDirectory.mkdir()
+        val videoPath = newDirectory.absolutePath + "/" + System.currentTimeMillis() +".mp4"
+        return (videoPath)
     }
 
     private fun startRecordingVideo(){

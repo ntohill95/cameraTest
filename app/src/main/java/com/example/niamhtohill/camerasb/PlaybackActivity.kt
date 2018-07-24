@@ -18,10 +18,12 @@ class PlaybackActivity:AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.play_video)
 
-        var bundle = intent.extras
-        var file = bundle.get("FILENAME")
+        val bundle = intent.extras
+        val file = bundle.get("FILENAME")
         println("*****FILENAME***** $file")
         playerHolder = PlayerHolder(this, edit_video_player, state, file as File)
+
+
     }
 
     override fun onStart() {
@@ -38,4 +40,5 @@ class PlaybackActivity:AppCompatActivity(){
         super.onDestroy()
         playerHolder.release()
     }
+
 }
